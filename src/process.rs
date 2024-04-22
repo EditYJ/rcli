@@ -1,30 +1,20 @@
 use anyhow::Result;
 use csv::Reader;
-use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::fs::write;
 
 use crate::CsvOption;
 
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct Player {
-    name: String,
-    position: String,
-    #[serde(rename = "DOB")]
-    dob: String,
-    nationality: String,
-    #[serde(rename = "Kit Number")]
-    kit: u8,
-}
-
 pub fn handle_csv_command(csv_option: CsvOption) -> Result<()> {
     let mut input_file = Reader::from_path(csv_option.input)?;
-    let mut res = Vec::with_capacity(128);
-    for row in input_file.deserialize() {
-        let result: Player = row?;
-        res.push(result)
+    let mut result = Vec::with_capacity(128);
+    let headers = input_file.headers()?.clone();
+    for row in input_file.records() {
+        let row_data = row?;
+        let json_value = headers.iter().zip(row_data.iter()).collect::<Value>();
+        result.push(json_value)
     }
-    let json = serde_json::to_string_pretty(&res)?;
+    let json = serde_json::to_string_pretty(&result)?;
     write(csv_option.output, json)?;
     Ok(())
 }
