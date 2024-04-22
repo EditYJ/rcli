@@ -7,7 +7,12 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.cmd {
         Command::Csv(csv_option) => {
-            handle_csv_command(csv_option)?;
+            let output = if let Some(output) = csv_option.output {
+                output.clone()
+            } else {
+                format!("output.{}", csv_option.format)
+            };
+            handle_csv_command(&csv_option.input, output, csv_option.format)?;
         }
     }
 
