@@ -14,6 +14,8 @@ pub struct Cli {
 pub enum Command {
     #[command(name = "csv", about = "转换Csv文件")]
     Csv(CsvOption),
+    #[command(name = "genpass", about = "生成随机密码")]
+    GenPass(GenPassOption),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -41,11 +43,30 @@ pub struct CsvOption {
     pub header: bool,
 }
 
+#[derive(Debug, Parser)]
+pub struct GenPassOption {
+    // 定义了一组用于密码生成的配置参数
+    #[arg(long, default_value_t = 16)]
+    pub length: u8, // 密码长度，默认值为16
+
+    #[arg(long, default_value_t = false)]
+    pub no_uppercase: bool,
+
+    #[arg(long, default_value_t = false)]
+    pub no_lowercase: bool,
+
+    #[arg(long, default_value_t = false)]
+    pub no_number: bool,
+
+    #[arg(long, default_value_t = false)]
+    pub no_symbol: bool,
+}
+
 fn csv_input_opt_parser(filename: &str) -> Result<String, &'static str> {
     if Path::new(filename).exists() {
         Ok(filename.into())
     } else {
-        Err("制定文件不存存在！")
+        Err("指定文件不存存在！")
     }
 }
 
