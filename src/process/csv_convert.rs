@@ -3,7 +3,7 @@ use csv::Reader;
 use serde_json::Value;
 use std::fs::write;
 
-use crate::opts::OutputFormat;
+use crate::OutputFormat;
 
 // 处理 csv 文件
 pub fn handle_csv_command(
