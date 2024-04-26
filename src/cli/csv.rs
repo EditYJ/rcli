@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use clap::Parser;
 
-use super::input_file_parser;
+use super::verify_file;
 
 #[derive(Debug, Clone, Copy)]
 pub enum OutputFormat {
@@ -42,7 +42,7 @@ impl Display for OutputFormat {
 
 #[derive(Debug, Parser)]
 pub struct CsvOption {
-    #[arg(short, long, value_parser = input_file_parser)]
+    #[arg(short, long, value_parser = verify_file)]
     pub input: String,
 
     #[arg(short, long, value_parser = csv_format_opt_parser, default_value = "json")]

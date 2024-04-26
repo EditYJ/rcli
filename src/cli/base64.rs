@@ -2,11 +2,13 @@ use std::{fmt::Display, str::FromStr};
 
 use clap::Parser;
 
-use super::input_file_parser;
+use super::verify_file;
 
 #[derive(Debug, Parser)]
 pub enum Base64SubCommand {
+    #[command(about = "Base64 encode")]
     Encode(Base64EncodeOption),
+    #[command(about = "Base64 decode")]
     Decode(Base64DecodeOption),
 }
 
@@ -47,7 +49,7 @@ impl Display for Base64Format {
 pub struct Base64EncodeOption {
     // 定义了用于 base64 编码的配置参数
     // - 表示 输入文件，默认为标准输入(stdin)
-    #[arg(long, value_parser=input_file_parser, default_value="-")]
+    #[arg(long, value_parser=verify_file, default_value="-")]
     pub input: String,
 
     #[arg(long, value_parser=base64_format_parser, default_value = "standard")]
@@ -58,17 +60,13 @@ pub struct Base64EncodeOption {
 pub struct Base64DecodeOption {
     //  定义了用于 base64 解码的配置参数
     // - 表示 输入文件，默认为标准输入(stdin)
-    #[arg(long, value_parser=input_file_parser, default_value="-")]
+    #[arg(long, value_parser=verify_file, default_value="-")]
     pub input: String,
 
     #[arg(long,value_parser=base64_format_parser,  default_value = "standard")]
     pub format: Base64Format,
 }
 
-fn base64_format_parser(format_str: &str) -> Result<Base64Format, &'static str> {
-    match format_str {
-        "standard" => Ok(Base64Format::Standard),
-        "urlsafe" => Ok(Base64Format::UrlSafe),
-        _ => Err("Invalid base64 format"),
-    }
+fn base64_format_parser(format_str: &str) -> Result<Base64Format, String> {
+    format_str.parse()
 }

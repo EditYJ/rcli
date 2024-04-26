@@ -1,8 +1,9 @@
 mod base64;
 mod csv;
 mod genpass;
+mod text;
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use self::{csv::CsvOption, genpass::GenPassOption};
 use clap::Parser;
@@ -10,6 +11,7 @@ use clap::Parser;
 pub use self::{
     base64::{Base64Format, Base64SubCommand},
     csv::OutputFormat,
+    text::{TextSignFormat, TextSubCommand},
 };
 
 #[derive(Debug, Parser)]
@@ -27,13 +29,24 @@ pub enum SubCommand {
     GenPass(GenPassOption),
     #[command(subcommand)]
     Base64(Base64SubCommand),
+    #[command(subcommand)]
+    Text(TextSubCommand),
 }
 
-pub fn input_file_parser(filename: &str) -> Result<String, &'static str> {
+pub fn verify_file(filename: &str) -> Result<String, &'static str> {
     if filename == "-" || Path::new(filename).exists() {
         Ok(filename.into())
     } else {
         Err("指定文件不存存在！")
+    }
+}
+
+pub fn verify_dir(filename: &str) -> Result<PathBuf, &'static str> {
+    let path = Path::new(filename);
+    if path.exists() && path.is_dir() {
+        Ok(filename.into())
+    } else {
+        Err("指定目录不存在！")
     }
 }
 
@@ -43,9 +56,9 @@ mod test {
 
     #[test]
     fn test_input_file_parser() {
-        assert_eq!(input_file_parser("-"), Ok("-".into()));
-        assert_eq!(input_file_parser("*"), Err("指定文件不存存在！"));
-        assert_eq!(input_file_parser("not-exit"), Err("指定文件不存存在！"));
-        assert_eq!(input_file_parser("Cargo.toml"), Ok("Cargo.toml".into()));
+        assert_eq!(verify_file("-"), Ok("-".into()));
+        assert_eq!(verify_file("*"), Err("指定文件不存存在！"));
+        assert_eq!(verify_file("not-exit"), Err("指定文件不存存在！"));
+        assert_eq!(verify_file("Cargo.toml"), Ok("Cargo.toml".into()));
     }
 }

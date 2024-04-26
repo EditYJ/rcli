@@ -1,6 +1,5 @@
 use anyhow::Result;
 use rand::prelude::SliceRandom;
-use zxcvbn::zxcvbn;
 
 const UPPER_CASE: &[u8] = b"ABCDEFGHJKLMNPQRSTUVWXYZ";
 const LOWER_CASE: &[u8] = b"abcdefghijkmnopqrstuvwxyz";
@@ -14,7 +13,7 @@ pub fn handle_gen_pass_command(
     no_lowercase: bool,
     no_number: bool,
     no_symbol: bool,
-) -> Result<()> {
+) -> Result<String> {
     let mut rng = rand::thread_rng();
     let mut password = Vec::new();
     let mut chars = Vec::new();
@@ -43,9 +42,6 @@ pub fn handle_gen_pass_command(
 
     password.shuffle(&mut rng);
     let password = String::from_utf8(password)?;
-    println!("{}", password); // 输出生成的密码
-    let estimate = zxcvbn(&password, &[])?;
-    eprintln!("生成密码强度: {}", estimate.score());
 
-    Ok(())
+    Ok(password)
 }
