@@ -4,11 +4,14 @@ use anyhow::Result;
 use clap::Parser;
 use rcli::{
     base64_decode, base64_encode, generate_sign_key, handle_csv_command, handle_gen_pass_command,
-    sign_text, verify_text, Base64SubCommand, Cli, SubCommand, TextSignFormat, TextSubCommand,
+    process_http_serve, sign_text, verify_text, Base64SubCommand, Cli, SubCommand, TextSignFormat,
+    TextSubCommand,
 };
 use zxcvbn::zxcvbn;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
+    tracing_subscriber::fmt::init();
     let cli = Cli::parse();
     match cli.cmd {
         SubCommand::Csv(csv_option) => {
@@ -63,6 +66,11 @@ fn main() -> Result<()> {
                         fs::write(path_name, &key[0])?;
                     }
                 }
+            }
+        },
+        SubCommand::Http(sub) => match sub {
+            rcli::HttpSubCommand::Serve(opts) => {
+                process_http_serve(opts.dir, opts.port).await?;
             }
         },
     }
