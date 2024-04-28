@@ -1,2 +1,2 @@
 ### test index
-GET http://localhost:8080/src/asd.ss
+GET http://localhost:8080/tower/Cargo.toml

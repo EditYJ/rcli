@@ -18,8 +18,9 @@ pub async fn process_http_serve(dir: PathBuf, port: u16) -> Result<()> {
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     info!("Serving {:?} on {}", dir, addr);
 
-    let state = HttpServeState { path: dir };
+    let state = HttpServeState { path: dir.clone() };
     let router = Router::new()
+        .nest_service("/tower", tower_http::services::ServeDir::new(dir))
         .route("/*path", get(file_handler))
         .with_state(Arc::new(state));
     let listener = TcpListener::bind(addr).await?;
