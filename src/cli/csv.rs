@@ -2,7 +2,9 @@ use std::{fmt::Display, str::FromStr};
 
 use clap::Parser;
 
-use super::verify_file;
+use crate::handle_csv_command;
+
+use super::{verify_file, CmdExecutor};
 
 #[derive(Debug, Clone, Copy)]
 pub enum OutputFormat {
@@ -56,6 +58,17 @@ pub struct CsvOption {
 
     #[arg(long, default_value_t = true)]
     pub header: bool,
+}
+
+impl CmdExecutor for CsvOption {
+    async fn execute(&self) -> anyhow::Result<()> {
+        let output = if let Some(output) = &self.output {
+            output.clone()
+        } else {
+            format!("output.{}", self.format)
+        };
+        handle_csv_command(&self.input, output, self.format)
+    }
 }
 
 fn csv_format_opt_parser(format: &str) -> Result<OutputFormat, &'static str> {

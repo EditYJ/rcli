@@ -16,11 +16,22 @@ pub use self::{
     text::{TextSignFormat, TextSubCommand},
 };
 
+#[allow(async_fn_in_trait)]
+pub trait CmdExecutor {
+    async fn execute(&self) -> anyhow::Result<()>;
+}
+
 #[derive(Debug, Parser)]
 #[command(name = "rcli", version, author)]
 pub struct Cli {
     #[command(subcommand)]
     pub cmd: SubCommand,
+}
+
+impl CmdExecutor for Cli {
+    async fn execute(&self) -> anyhow::Result<()> {
+        self.cmd.execute().await
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -35,6 +46,18 @@ pub enum SubCommand {
     Text(TextSubCommand),
     #[command(subcommand)]
     Http(HttpSubCommand),
+}
+
+impl CmdExecutor for SubCommand {
+    async fn execute(&self) -> anyhow::Result<()> {
+        match self {
+            SubCommand::Csv(option) => option.execute().await,
+            SubCommand::GenPass(option) => option.execute().await,
+            SubCommand::Base64(option) => option.execute().await,
+            SubCommand::Text(option) => option.execute().await,
+            SubCommand::Http(option) => option.execute().await,
+        }
+    }
 }
 
 pub fn verify_file(filename: &str) -> Result<String, &'static str> {

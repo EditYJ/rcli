@@ -1,7 +1,10 @@
 use std::{fmt::Display, path::PathBuf, str::FromStr};
 
-use super::{verify_dir, verify_file};
+use crate::{generate_sign_key, sign_text, verify_text};
+
+use super::{verify_dir, verify_file, CmdExecutor};
 use clap::Parser;
+use tokio::fs;
 
 #[derive(Debug, Parser)]
 pub enum TextSubCommand {
@@ -13,6 +16,16 @@ pub enum TextSubCommand {
     Generate(GenerateTextOption),
 }
 
+impl CmdExecutor for TextSubCommand {
+    async fn execute(&self) -> anyhow::Result<()> {
+        match self {
+            TextSubCommand::Sign(opts) => opts.execute().await,
+            TextSubCommand::Verify(opts) => opts.execute().await,
+            TextSubCommand::Generate(opts) => opts.execute().await,
+        }
+    }
+}
+
 #[derive(Debug, Parser)]
 pub struct GenerateTextOption {
     #[arg(long, value_parser=sign_format_parser, default_value = "blake3")]
@@ -20,6 +33,24 @@ pub struct GenerateTextOption {
 
     #[arg(short, long, value_parser=verify_dir)]
     pub output: PathBuf,
+}
+
+impl CmdExecutor for GenerateTextOption {
+    async fn execute(&self) -> anyhow::Result<()> {
+        let key = generate_sign_key(self.format)?;
+        match self.format {
+            TextSignFormat::Ed25519 => {
+                let path_name = &self.output;
+                fs::write(path_name.join("ed25519.sk"), &key[0]).await?;
+                fs::write(path_name.join("ed25519.pk"), &key[1]).await?;
+            }
+            TextSignFormat::Blake3 => {
+                let path_name = self.output.join("blake3.txt");
+                fs::write(path_name, &key[0]).await?;
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -32,6 +63,14 @@ pub struct SignTextOption {
 
     #[arg(long, value_parser=sign_format_parser, default_value = "blake3")]
     pub format: TextSignFormat,
+}
+
+impl CmdExecutor for SignTextOption {
+    async fn execute(&self) -> anyhow::Result<()> {
+        let signed = sign_text(&self.input, &self.key, self.format)?;
+        println!("{}", signed);
+        Ok(())
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -47,6 +86,14 @@ pub struct VerifyTextOption {
 
     #[arg(long, value_parser=sign_format_parser, default_value = "blake3")]
     pub format: TextSignFormat,
+}
+
+impl CmdExecutor for VerifyTextOption {
+    async fn execute(&self) -> anyhow::Result<()> {
+        let verified = verify_text(&self.input, &self.key, &self.sig, self.format)?;
+        println!("验证情况: {}", verified);
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

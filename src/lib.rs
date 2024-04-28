@@ -3,8 +3,8 @@ mod process;
 mod utils;
 
 pub use cli::{
-    Base64Format, Base64SubCommand, Cli, HttpServeOption, HttpSubCommand, OutputFormat, SubCommand,
-    TextSignFormat, TextSubCommand,
+    Base64Format, Base64SubCommand, Cli, CmdExecutor, HttpServeOption, HttpSubCommand,
+    OutputFormat, SubCommand, TextSignFormat, TextSubCommand,
 };
 pub use process::{
     base64_decode, base64_encode, generate_sign_key, handle_csv_command, handle_gen_pass_command,
