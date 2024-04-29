@@ -1,21 +1,14 @@
-use crate::process_http_serve;
-
 use super::{verify_dir, CmdExecutor};
+use crate::process_http_serve;
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExecutor)]
 pub enum HttpSubCommand {
     #[command(about = "http file server")]
     Serve(HttpServeOption),
-}
-
-impl CmdExecutor for HttpSubCommand {
-    async fn execute(&self) -> anyhow::Result<()> {
-        match self {
-            Self::Serve(option) => option.execute().await,
-        }
-    }
 }
 
 #[derive(Debug, Parser)]

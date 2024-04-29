@@ -8,15 +8,17 @@ use std::path::{Path, PathBuf};
 
 use self::{csv::CsvOption, genpass::GenPassOption};
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 
 pub use self::{
-    base64::{Base64Format, Base64SubCommand},
+    base64::{Base64DecodeOption, Base64EncodeOption, Base64Format, Base64SubCommand},
     csv::OutputFormat,
     http::{HttpServeOption, HttpSubCommand},
-    text::{TextSignFormat, TextSubCommand},
+    text::{GenerateTextOption, SignTextOption, TextSignFormat, TextSubCommand, VerifyTextOption},
 };
 
 #[allow(async_fn_in_trait)]
+#[enum_dispatch]
 pub trait CmdExecutor {
     async fn execute(&self) -> anyhow::Result<()>;
 }
@@ -35,6 +37,7 @@ impl CmdExecutor for Cli {
 }
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExecutor)]
 pub enum SubCommand {
     #[command(name = "csv", about = "转换Csv文件")]
     Csv(CsvOption),
@@ -46,18 +49,6 @@ pub enum SubCommand {
     Text(TextSubCommand),
     #[command(subcommand)]
     Http(HttpSubCommand),
-}
-
-impl CmdExecutor for SubCommand {
-    async fn execute(&self) -> anyhow::Result<()> {
-        match self {
-            SubCommand::Csv(option) => option.execute().await,
-            SubCommand::GenPass(option) => option.execute().await,
-            SubCommand::Base64(option) => option.execute().await,
-            SubCommand::Text(option) => option.execute().await,
-            SubCommand::Http(option) => option.execute().await,
-        }
-    }
 }
 
 pub fn verify_file(filename: &str) -> Result<String, &'static str> {
